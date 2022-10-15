@@ -25,8 +25,6 @@ def extrinsic(intrinsinc_matrix,homography_list):
 		t = lamda*np.dot(inverse_K,a_homography[:,2])
 		r3 = np.cross(r1,r2)
 		R = np.asarray([r1, r2, r3]).T
-
-
 		extrinsic=np.hstack((R,t.reshape(3,1)))
 		extrinsinc_matrix_list.append(extrinsic)
 

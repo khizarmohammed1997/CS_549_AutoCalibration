@@ -1,6 +1,6 @@
+from email.mime import image
 import numpy as np
 import glob
-from utils import*
 import sys
 import os
 import cv2
@@ -55,7 +55,7 @@ def intrinsinc_matrix(V_list):
 
 def display(image,name="test"):
 	image=cv2.resize(image,(960,540))
-	cv2.imshow("name",image)
+	cv2.imshow(name,image)
 	cv2.waitKey(0)
 
 def v(H, i, j):
@@ -137,7 +137,19 @@ def visualization(corners,predicted_corners,path):
 			cv2.circle(img,(int(a_corner[0]),int(a_corner[1])),5,(0,0,255),15)
 			cv2.circle(img,(int(a_predicted_corner[0]),int(a_predicted_corner[1])),5,(255,0,0),10)
 		display(img)
-
+def rectifier(A,k1,k2,predicted_corners,path):
+	
+	kc= np.array([k1,k2,0,0,0],dtype=float)
+	i=0
+	dir_list = os.listdir(path)
+	for an_image in dir_list:
+		img=cv2.imread(os.path.join(os.getcwd(),"Calibration_Imgs",an_image))
+		img = cv2.undistort(img,A,kc)
+		img= cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+		for a_corner in predicted_corners[i]:
+			cv2.circle(img,(int(a_corner[0]),int(a_corner[1])),5,(0,0,255),15)
+		display(img,f"Rectifiedimage {i}")
+		i+=1
 def homographies(path=None):
 	
 	world_corner_locations= np.array([[21.5, 21.5],[21.5*9,21.5],[21.5*9, 21.5*6],[21.5,21.5*6]], dtype='float32')
@@ -186,14 +198,17 @@ def main():
 	print(f"A_optimized={A_optimimzed}")
 	print(f"k1={k1} k2={k2}")
 	print(f"Mean errro after optimization = {np.mean(error)}")
-	visualization(corners,predicted_corners,os.path.join(os.getcwd(),"Calibration_Imgs"))
+	# visualization(corners,predicted_corners,os.path.join(os.getcwd(),"Calibration_Imgs"))
 
 	#calculating reprojection error with unoptimized A
 	World_locations = world_coordinates(9,6)
 	parameters=np.array([A[0,0],A[1,1],A[0,2],A[1,2],A[0,1],0,0])
 	error_old,predicted_corners_old=optimization_function(parameters,corners,E,World_locations,reprojection=True)
 	print(f"Mean errro before optimization = {np.mean(error_old)}")
-	visualization(corners,predicted_corners_old,os.path.join(os.getcwd(),"Calibration_Imgs"))
+	# visualization(corners,predicted_corners_old,os.path.join(os.getcwd(),"Calibration_Imgs"))
+
+	#Displaying rectified images
+	rectifier(A_optimimzed,k1,k2,predicted_corners,os.path.join(os.getcwd(),"Calibration_Imgs"))
 	
 if __name__=='__main__':
 	main()
